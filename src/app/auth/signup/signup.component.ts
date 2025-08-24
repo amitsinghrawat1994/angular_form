@@ -1,11 +1,25 @@
 import { Component } from '@angular/core';
 import {
+  AbstractControl,
   FormArray,
   FormControl,
   FormGroup,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+
+function equalValue(controlName1: string, controlName2: string) {
+  return (control: AbstractControl) => {
+    const value1 = control.get(controlName1)?.value;
+    const value2 = control.get(controlName2)?.value;
+
+    if (value1 === value2) {
+      return null;
+    }
+
+    return { valueNotEqual: true };
+  };
+}
 
 @Component({
   selector: 'app-signup',
@@ -19,14 +33,19 @@ export class SignupComponent {
     email: new FormControl('', {
       validators: [Validators.required, Validators.email],
     }),
-    passwords: new FormGroup({
-      password: new FormControl('', {
-        validators: [Validators.required, Validators.minLength(6)],
-      }),
-      confirmPassword: new FormControl('', {
-        validators: [Validators.required, Validators.minLength(6)],
-      }),
-    }),
+    passwords: new FormGroup(
+      {
+        password: new FormControl('', {
+          validators: [Validators.required, Validators.minLength(6)],
+        }),
+        confirmPassword: new FormControl('', {
+          validators: [Validators.required, Validators.minLength(6)],
+        }),
+      },
+      {
+        validators: [equalValue('password', 'confirmPassword')],
+      }
+    ),
     firstName: new FormControl('', {
       validators: [Validators.required],
     }),
@@ -59,6 +78,11 @@ export class SignupComponent {
   });
 
   onSubmit() {
+    if (this.form.invalid) {
+      console.log('Invalid form');
+      return;
+    }
+
     console.log(this.form);
   }
 
